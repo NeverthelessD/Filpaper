@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flipaper</title>
+<link rel="icon" href="/icon.png">
+<link rel="stylesheet" href="/app.css">
+<script src="/assets/pdf-lib.min.js"></script>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <img src="/icon.png" alt="" class="brand-logo">
+      <div>
+        <div class="brand-name">Flipaper</div>
+        <div class="brand-sub">Image ⇄ PDF</div>
+      </div>
+    </div>
+    <nav class="modes" id="modes">
+      <span class="mode-pill" id="modePill"></span>
+      <button data-mode="img" class="mode on"><span class="mi">🖼️</span>이미지 → PDF</button>
+      <button data-mode="pdf" class="mode"><span class="mi">📄</span>PDF → 이미지</button>
+      <button data-mode="zip" class="mode"><span class="mi">🗜️</span>PDF 용량 줄이기</button>
+    </nav>
+    <div class="top-actions">
+      <button class="ver-badge" id="verBadge" title="버전 · 업데이트"><span class="ver-dot"></span><span id="verText">v</span></button>
+      <div class="theme-toggle" id="themeToggle">
+        <button data-theme="system" title="시스템 설정 따르기"><svg viewBox="0 0 16 16" width="14" height="14"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 1.8a6.2 6.2 0 0 1 0 12.4z" fill="currentColor"/></svg></button>
+        <button data-theme="light" title="라이트 모드"><svg viewBox="0 0 16 16" width="14" height="14"><circle cx="8" cy="8" r="3.2" fill="currentColor"/><g stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 1v1.8M8 13.2V15M1 8h1.8M13.2 8H15M3.05 3.05l1.27 1.27M11.68 11.68l1.27 1.27M3.05 12.95l1.27-1.27M11.68 4.32l1.27-1.27"/></g></svg></button>
+        <button data-theme="dark" title="다크 모드"><svg viewBox="0 0 16 16" width="14" height="14"><path d="M13.6 10.4A6 6 0 0 1 5.6 2.4a6 6 0 1 0 8 8z" fill="currentColor"/></svg></button>
+      </div>
+      <button class="icon-btn" id="settingsBtn" title="설정"><svg viewBox="0 0 16 16" width="15" height="15"><path fill="currentColor" d="M9.4 1l.35 1.7a5.6 5.6 0 0 1 1.3.75l1.65-.55 1.4 2.4-1.3 1.15a5.7 5.7 0 0 1 0 1.5l1.3 1.15-1.4 2.4-1.65-.55a5.6 5.6 0 0 1-1.3.75L9.4 15H6.6l-.35-1.7a5.6 5.6 0 0 1-1.3-.75l-1.65.55-1.4-2.4 1.3-1.15a5.7 5.7 0 0 1 0-1.5L1.9 6.9l1.4-2.4 1.65.55a5.6 5.6 0 0 1 1.3-.75L6.6 1zM8 5.6a2.4 2.4 0 1 0 0 4.8 2.4 2.4 0 0 0 0-4.8z"/></svg></button>
+      <button class="icon-btn" id="quitBtn" title="Flipaper 종료"><svg viewBox="0 0 16 16" width="15" height="15"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 1.8v6"/><path d="M4.6 4a5.2 5.2 0 1 0 6.8 0"/></g></svg></button>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- ───────────── 이미지 → PDF ───────────── -->
+    <section class="mode-view" id="view-img">
+      <div class="work" id="imgWork">
+        <div class="dropzone" id="imgEmpty">
+          <div class="illus" data-illus="img"></div>
+          <h2>이미지를 끌어다 놓으세요</h2>
+          <p>여러 장을 한 번에 넣고, 원하는 순서로 정렬한 뒤<br>하나의 PDF로 만들어 드려요. 장수 제한은 없어요.</p>
+          <button class="btn primary big" data-pick="img">＋ 이미지 선택</button>
+          <div class="chips"><span>JPG</span><span>JPEG</span><span>PNG</span><span>HEIC</span><span>WEBP</span><span>TIFF</span></div>
+          <small>또는 파일·폴더를 이 영역으로 끌어다 놓으세요</small>
+        </div>
+        <div class="filled" id="imgFilled" hidden>
+          <div class="work-bar">
+            <div>
+              <div class="work-title" id="imgCount">이미지 0장</div>
+              <div class="work-hint" id="imgHint">드래그해서 순서를 바꾸고, 더블클릭하면 크게 볼 수 있어요</div>
+            </div>
+            <div class="spacer"></div>
+            <button class="btn ghost danger" id="imgDelSel" hidden>🗑 선택 삭제</button>
+            <div class="menu-wrap">
+              <button class="btn ghost" id="imgSortBtn">↕︎ 정렬</button>
+              <div class="menu" id="imgSortMenu" hidden>
+                <button data-sort="asc">파일 이름순 (가 → 하, 1 → 9)</button>
+                <button data-sort="desc">파일 이름 역순</button>
+                <hr>
+                <button data-sort="reverse">현재 순서 뒤집기</button>
+              </div>
+            </div>
+            <button class="btn ghost" data-pick="img">＋ 추가</button>
+            <button class="btn ghost" id="imgClear">✕ 모두 지우기</button>
+          </div>
+          <div class="grid-scroll" id="imgScroll">
+            <div class="page-grid" id="imgGrid"></div>
+          </div>
+        </div>
+        <div class="drop-overlay" id="imgDropOverlay"><div>여기에 놓으면 추가돼요</div></div>
+      </div>
+
+      <aside class="side">
+        <div class="side-scroll">
+          <div class="card">
+            <div class="card-title">📐 용지 크기</div>
+            <select id="paperSel">
+              <option value="a4">A4 · 210 × 297 mm</option>
+              <option value="a3">A3 · 297 × 420 mm</option>
+              <option value="a5">A5 · 148 × 210 mm</option>
+              <option value="b4">B4 · 257 × 364 mm</option>
+              <option value="b5">B5 · 182 × 257 mm</option>
+              <option value="letter">Letter · 215.9 × 279.4 mm</option>
+              <option value="legal">Legal · 215.9 × 355.6 mm</option>
+              <option value="custom">사용자 지정 크기…</option>
+            </select>
+            <div class="custom-size" id="customSize" hidden>
+              <input type="number" id="customW" min="10" max="3000" step="0.1"> <span>×</span>
+              <input type="number" id="customH" min="10" max="3000" step="0.1"> <span>mm</span>
+            </div>
+            <div class="seg" id="orientSeg">
+              <button data-v="portrait">세로</button>
+              <button data-v="landscape">가로</button>
+              <button data-v="auto">자동 회전</button>
+            </div>
+            <div class="note" id="paperDesc"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">🔲 여백</div>
+            <div class="slider-row">
+              <input type="range" id="marginRange" min="0" max="30" step="1">
+              <b id="marginVal">0 mm</b>
+            </div>
+            <div class="note">↔︎ 이미지 비율을 유지한 채 용지에 맞춰 자동으로 확대·축소돼요</div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">🎚️ 해상도 · 예상 용량</div>
+            <div class="qgrid" id="imgQuality"></div>
+            <div class="note strong" id="imgQualityHint"></div>
+            <div class="note">예상 용량은 일부 이미지를 실제로 압축해서 계산한 값이에요. 정확한 크기는 ‘미리보기’에서 확인할 수 있어요.</div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">💾 저장</div>
+            <div class="seg" id="mergeSeg">
+              <button data-v="1">하나의 PDF로</button>
+              <button data-v="0">이미지마다 PDF</button>
+            </div>
+            <div id="nameRow">
+              <label class="lbl">파일 이름</label>
+              <div class="name-row">
+                <input type="text" id="imgName" spellcheck="false">
+                <span class="ext">.pdf</span>
+                <button class="mini" id="imgNameReset" title="날짜·시간으로 새 이름">↻</button>
+              </div>
+            </div>
+            <div class="note" id="sepNote" hidden>원본 이미지 이름으로 각각 저장돼요. (예: photo.jpg → photo.pdf)</div>
+            <div class="folder-row" data-folder></div>
+          </div>
+        </div>
+        <div class="side-foot">
+          <div class="status" id="imgStatus"></div>
+          <div class="actions">
+            <button class="btn" id="imgPreviewBtn">👀 미리보기</button>
+            <button class="btn primary" id="imgConvertBtn">✨ PDF로 변환</button>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <!-- ───────────── PDF → 이미지 ───────────── -->
+    <section class="mode-view" id="view-pdf" hidden>
+      <div class="work" id="pdfWork">
+        <div class="dropzone" id="pdfEmpty">
+          <div class="illus" data-illus="pdf"></div>
+          <h2>PDF를 끌어다 놓으세요</h2>
+          <p>페이지마다 JPG · JPEG · PNG 이미지로 저장해 드려요.<br>여러 개의 PDF도 한 번에 변환할 수 있어요.</p>
+          <button class="btn primary big" data-pick="pdf">＋ PDF 선택</button>
+          <div class="chips"><span>PDF</span><span>→</span><span>JPG</span><span>JPEG</span><span>PNG</span></div>
+          <small>또는 파일·폴더를 이 영역으로 끌어다 놓으세요</small>
+        </div>
+        <div class="filled split" id="pdfFilled" hidden>
+          <div class="file-list">
+            <div class="work-bar small">
+              <div class="work-title" id="pdfCount">PDF 0개</div>
+              <div class="spacer"></div>
+              <button class="mini" data-pick="pdf" title="PDF 추가">＋</button>
+              <button class="mini" id="pdfClear" title="모두 지우기">🗑</button>
+            </div>
+            <div class="list-scroll" id="pdfList"></div>
+          </div>
+          <div class="pages-area">
+            <div class="work-bar">
+              <div>
+                <div class="work-title" id="pdfTitle"></div>
+                <div class="work-hint" id="pdfHint"></div>
+              </div>
+            </div>
+            <div class="grid-scroll"><div class="page-grid pdf" id="pdfGrid"></div></div>
+          </div>
+        </div>
+        <div class="drop-overlay" id="pdfDropOverlay"><div>여기에 놓으면 추가돼요</div></div>
+      </div>
+
+      <aside class="side">
+        <div class="side-scroll">
+          <div class="card">
+            <div class="card-title">🖼️ 이미지 형식</div>
+            <div class="seg" id="fmtSeg">
+              <button data-v="jpg">JPG</button>
+              <button data-v="jpeg">JPEG</button>
+              <button data-v="png">PNG</button>
+            </div>
+            <div class="note" id="fmtNote"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">🎚️ 해상도</div>
+            <div class="qgrid" id="pdfQuality"></div>
+            <div class="note">해상도가 높을수록 선명하지만 파일이 커져요. 정확한 크기는 페이지를 눌러 ‘미리보기’에서 확인할 수 있어요.</div>
+          </div>
+          <div class="card">
+            <div class="card-title">📑 페이지 범위</div>
+            <div class="seg" id="rangeSeg">
+              <button data-v="all">전체 페이지</button>
+              <button data-v="custom">범위 지정</button>
+            </div>
+            <input type="text" id="rangeInput" placeholder="예: 1-3, 5, 8~10" hidden spellcheck="false">
+            <div class="note" id="rangeNote"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">💾 저장</div>
+            <label class="switch-row"><input type="checkbox" id="subfolderChk"><span class="switch"></span>PDF마다 폴더를 만들어 저장</label>
+            <div class="note" id="pdfNameNote"></div>
+            <div class="folder-row" data-folder></div>
+          </div>
+        </div>
+        <div class="side-foot">
+          <div class="status" id="pdfStatus"></div>
+          <div class="actions">
+            <button class="btn" id="pdfPreviewBtn">👀 미리보기</button>
+            <button class="btn primary" id="pdfConvertBtn">✨ 이미지로 변환</button>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <!-- ───────────── PDF 용량 줄이기 ───────────── -->
+    <section class="mode-view" id="view-zip" hidden>
+      <div class="work" id="zipWork">
+        <div class="dropzone" id="zipEmpty">
+          <div class="illus" data-illus="zip"></div>
+          <h2>용량을 줄일 PDF를 끌어다 놓으세요</h2>
+          <p>글자와 도형은 그대로 두고 사진만 알맞게 줄여서<br>메일·메신저로 보내기 좋은 크기로 만들어 드려요.</p>
+          <button class="btn primary big" data-pick="zip">＋ PDF 선택</button>
+          <div class="chips"><span>PDF</span><span>→</span><span>더 가벼운 PDF</span></div>
+          <small>또는 파일·폴더를 이 영역으로 끌어다 놓으세요</small>
+        </div>
+        <div class="filled" id="zipFilled" hidden>
+          <div class="work-bar">
+            <div>
+              <div class="work-title" id="zipCount">PDF 0개</div>
+              <div class="work-hint" id="zipHint">파일을 누르면 선택되고, ‘미리보기’로 압축 결과를 먼저 확인할 수 있어요</div>
+            </div>
+            <div class="spacer"></div>
+            <button class="btn ghost" data-pick="zip">＋ 추가</button>
+            <button class="btn ghost" id="zipClear">✕ 모두 지우기</button>
+          </div>
+          <div class="grid-scroll"><div class="zip-list" id="zipList"></div></div>
+        </div>
+        <div class="drop-overlay" id="zipDropOverlay"><div>여기에 놓으면 추가돼요</div></div>
+      </div>
+
+      <aside class="side">
+        <div class="side-scroll">
+          <div class="card">
+            <div class="card-title">🧠 압축 방식</div>
+            <div class="method" id="zipMethod">
+              <button data-v="smart">
+                <b>스마트 압축 <em>추천</em></b>
+                <span>글자·도형은 그대로 두고 사진만 줄여요. 글자 검색·복사가 계속 돼요.</span>
+              </button>
+              <button data-v="raster">
+                <b>강력 압축</b>
+                <span>페이지 전체를 이미지로 바꿔요. 스캔 문서에 효과가 크지만 글자 선택은 안 돼요.</span>
+              </button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">🎚️ 화질</div>
+            <div class="qgrid" id="zipQuality"></div>
+            <div class="note" id="zipQualityHint"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">💾 저장</div>
+            <label class="lbl">파일 이름 뒤에 붙일 말</label>
+            <div class="name-row"><span class="ext">원본이름</span><input type="text" id="zipSuffix" spellcheck="false"><span class="ext">.pdf</span></div>
+            <div class="note">원본 파일은 그대로 두고 새 파일로 저장해요. 줄일 수 없는 파일은 저장하지 않아요.</div>
+            <div class="folder-row" data-folder></div>
+          </div>
+        </div>
+        <div class="side-foot">
+          <div class="status" id="zipStatus"></div>
+          <div class="actions">
+            <button class="btn" id="zipPreviewBtn">👀 미리보기</button>
+            <button class="btn primary" id="zipConvertBtn">🗜️ 용량 줄이기</button>
+          </div>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <footer class="footer">made by. Nevertheless_D</footer>
+</div>
+
+<!-- 모달 -->
+<div class="modal-back" id="modal" hidden>
+  <div class="modal" id="modalBox">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="modalTitle"></div>
+        <div class="modal-sub" id="modalSub"></div>
+      </div>
+      <div class="spacer"></div>
+      <div class="modal-nav" id="modalNav">
+        <button class="mini" id="modalPrev">‹</button>
+        <span id="modalPos"></span>
+        <button class="mini" id="modalNext">›</button>
+      </div>
+      <div class="spacer"></div>
+      <div class="modal-actions" id="modalActions"></div>
+      <button class="btn" id="modalClose">닫기</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<div class="ctx-menu" id="ctxMenu" hidden></div>
+<div class="toast" id="toast" hidden></div>
+<input type="file" id="pickImg" multiple accept="image/*,.heic,.heif,.webp,.tif,.tiff,.bmp" hidden>
+<input type="file" id="pickPdf" multiple accept="application/pdf,.pdf" hidden>
+
+<script type="module" src="/app.js"></script>
+</body>
+</html>
