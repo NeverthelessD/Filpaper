@@ -35,3 +35,8 @@ Commit as `Nevertheless_D <NeverthelessD@users.noreply.github.com>`.
 `FLIPAPER_APP` (fake .app path), `FLIPAPER_UPDATE_URL` (local latest.json). For an update test, make a fake
 `Flipaper.app` with a Linux engine named `flipaper-x86_64`, set `HOME` to a temp dir and run the launcher with bash.
 Drive the UI with Playwright (Chromium is preinstalled).
+
+## User-facing text
+
+Never mention GitHub (or the repo name) in anything the user sees — app screens, update messages, usage-guide images.
+Say "새 버전이 나오면 앱이 알아서 받아요" instead. The user asked for this for all of their apps.

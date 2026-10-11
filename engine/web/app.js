@@ -1804,7 +1804,7 @@ function renderUpdate() {
   const L = st.latest;
   let t1 = '', t2 = '', showVers = false, acts = [];
   switch (st.status) {
-    case 'checking': t1 = '새 버전을 확인하고 있어요…'; t2 = 'GitHub에 물어보는 중이에요.'; break;
+    case 'checking': t1 = '새 버전을 확인하고 있어요…'; t2 = '잠시만 기다려 주세요.'; break;
     case 'available':
       t1 = '새 버전이 나왔어요! 🎉'; t2 = '받는 데 몇 초면 끝나요. 하던 작업은 그대로 둬도 돼요.'; showVers = true;
       acts = [{ label: '⬇︎ 지금 업데이트', primary: true, onClick: installUpdate }]; break;
